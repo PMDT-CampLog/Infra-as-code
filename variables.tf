@@ -101,3 +101,12 @@ variable "data_platform_secret" {
   sensitive   = true
   description = "Secret token compartilhado para segurança do Data Platform"
 }
+
+# --- MEDIA STORAGE VARIABLES ---
+
+variable "media_allowed_origins" {
+  type        = list(string)
+  default     = ["http://localhost:3000", "http://localhost:3001"]
+  description = "Origens CORS permitidas para upload de mídias de usuários"
+}
+

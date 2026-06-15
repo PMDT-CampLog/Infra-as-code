@@ -32,3 +32,14 @@ output "ssm_email_api_key_arn" {
   value       = module.secrets.email_service_api_key_arn
   description = "ARN do parâmetro SSM que armazena a chave de API do e-mail"
 }
+
+output "media_bucket_name" {
+  value       = module.media_storage.bucket_name
+  description = "Nome do bucket S3 de mídias de usuários"
+}
+
+output "media_cdn_domain" {
+  value       = module.media_storage.cdn_domain_name
+  description = "Domínio público do CloudFront para servir mídias de usuários"
+}
+

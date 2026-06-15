@@ -37,6 +37,15 @@ module "storage" {
   environment  = var.environment
 }
 
+# 4. Módulo para armazenamento de mídias de usuários (Avatares, Capas, Posts)
+module "media_storage" {
+  source = "./modules/media-storage"
+
+  project_name    = var.project_name
+  environment     = var.environment
+  allowed_origins = var.media_allowed_origins
+}
+
 # 3. Módulo para gerenciamento seguro das variáveis de ambiente (Secrets Manager / SSM Parameter Store)
 module "secrets" {
   source = "./modules/secrets"
