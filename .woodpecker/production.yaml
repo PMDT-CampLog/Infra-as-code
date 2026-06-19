@@ -1,0 +1,52 @@
+# ==============================================================================
+# CampLog Infra-as-code - Pipeline de Produção (GitOps Apply)
+# Disparado a cada criação de tag (ex: v1.0.0)
+# Executa a aplicação real das mudanças de infraestrutura na AWS de Produção
+# ==============================================================================
+
+when:
+  event: tag
+  tag: v*
+
+steps:
+  # --- 1. GIT (Verificar status e logs) ---
+  git-info:
+    image: alpine/git
+    commands:
+      - echo "=== [GIT INFO] Verificando sincronização com o GitHub para Produção ==="
+      - git status
+      - git log -1 --oneline
+
+  # --- 2. INSTALL (Inicializar Terraform) ---
+  install-deps:
+    image: hashicorp/terraform:1.6.0
+    commands:
+      - echo "=== [INSTALL] Inicializando backend e provedores do Terraform ==="
+      - terraform init -reconfigure
+
+  # --- 3. LINT (Verificar formatação dos arquivos .tf) ---
+  lint-check:
+    image: hashicorp/terraform:1.6.0
+    commands:
+      - echo "=== [LINT] Verificando formatação dos arquivos do Terraform ==="
+      - terraform fmt -check
+
+  # --- 4. TESTS (Validar integridade do IaC) ---
+  test-run:
+    image: hashicorp/terraform:1.6.0
+    commands:
+      - echo "=== [TESTS] Executando validação lógica (terraform validate) ==="
+      - terraform validate
+
+  # --- 5. GET CREDENTIALS ENV & APPLY (Aplicação Real na AWS) ---
+  deploy-production:
+    image: hashicorp/terraform:1.6.0
+    commands:
+      - echo "=== [DEPLOY] Aplicando alterações de infraestrutura na AWS (terraform apply) ==="
+      - terraform apply -auto-approve -no-color
+    environment:
+      AWS_ACCESS_KEY_ID:
+        from_secret: aws_access_key_id
+      AWS_SECRET_ACCESS_KEY:
+        from_secret: aws_secret_access_key
+      AWS_DEFAULT_REGION: us-east-1

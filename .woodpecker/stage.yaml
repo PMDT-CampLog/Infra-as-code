@@ -1,0 +1,55 @@
+# ==============================================================================
+# CampLog Infra-as-code - Pipeline de Staging (Validação GitOps)
+# Disparado a cada push na branch 'main'
+# Executa validação de sintaxe e plano de execução (Dry-Run) sem aplicar alterações
+# ==============================================================================
+
+when:
+  event: push
+  branch: main
+
+steps:
+  # --- 1. GIT (Verificar status e logs) ---
+  git-info:
+    image: alpine/git
+    commands:
+      - echo "=== [GIT INFO] Verificando sincronização com o GitHub ==="
+      - git status
+      - git log -1 --oneline
+
+  # --- 2. INSTALL (Inicializar Terraform) ---
+  install-deps:
+    image: hashicorp/terraform:1.6.0
+    commands:
+      - echo "=== [INSTALL] Inicializando provedores e módulos do Terraform ==="
+      - terraform init -backend=false # Inicializa apenas para validação local se sem backend configurado
+
+  # --- 3. LINT (Verificar formatação dos arquivos .tf) ---
+  lint-check:
+    image: hashicorp/terraform:1.6.0
+    commands:
+      - echo "=== [LINT] Verificando formatação dos arquivos do Terraform ==="
+      - terraform fmt -check
+
+  # --- 4. TESTS (Validar integridade do IaC) ---
+  test-run:
+    image: hashicorp/terraform:1.6.0
+    commands:
+      - echo "=== [TESTS] Executando validação de integridade lógica (terraform validate) ==="
+      - terraform validate
+
+  # --- 5. GET CREDENTIALS ENV & PLAN (Validação de Execução no AWS) ---
+  get-credentials-env:
+    image: hashicorp/terraform:1.6.0
+    commands:
+      - echo "=== [GET CREDENTIALS ENV & PLAN] Gerando plano de execução (terraform plan) ==="
+      # Inicializa o backend real para obter o state da AWS
+      - terraform init -reconfigure
+      # Gera o plano de alterações na AWS
+      - terraform plan -no-color
+    environment:
+      AWS_ACCESS_KEY_ID:
+        from_secret: aws_access_key_id
+      AWS_SECRET_ACCESS_KEY:
+        from_secret: aws_secret_access_key
+      AWS_DEFAULT_REGION: us-east-1
