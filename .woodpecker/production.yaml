@@ -38,15 +38,10 @@ steps:
       - echo "=== [TESTS] Executando validação lógica (terraform validate) ==="
       - terraform validate
 
-  # --- 5. GET CREDENTIALS ENV & APPLY (Aplicação Real na AWS) ---
-  deploy-production:
-    image: hashicorp/terraform:1.6.0
+  # --- 5. GET CREDENTIALS ENV & APPLY (Aplicação Real na AWS - MOCK / PLACEHOLDER) ---
+  deploy-production-placeholder:
+    image: alpine:latest
     commands:
-      - echo "=== [DEPLOY] Aplicando alterações de infraestrutura na AWS (terraform apply) ==="
-      - terraform apply -auto-approve -no-color
-    environment:
-      AWS_ACCESS_KEY_ID:
-        from_secret: aws_access_key_id
-      AWS_SECRET_ACCESS_KEY:
-        from_secret: aws_secret_access_key
-      AWS_DEFAULT_REGION: us-east-1
+      - echo "=== [DEPLOY] Aplicando alterações de infraestrutura na AWS ==="
+      - echo "[PLACEHOLDER] Terraform apply simulado para a infraestrutura AWS com a tag ${CI_COMMIT_TAG}."
+
